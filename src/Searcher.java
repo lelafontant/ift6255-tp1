@@ -21,7 +21,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 
-
 public class Searcher {    
     IndexSearcher indexSearcher;
     QueryParser queryParser;
@@ -60,9 +59,5 @@ public class Searcher {
 
     public Document getDocument(ScoreDoc scoreDoc) throws CorruptIndexException, IOException {
         return indexSearcher.doc(scoreDoc.doc);
-    }
-
-    public void close() throws IOException {
-        
     }
 }

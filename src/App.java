@@ -1,47 +1,45 @@
-import java.io.File;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.lucene.queryparser.classic.QueryParser;
 
 public class App {
     public static void main(String[] args) throws Exception {
         try {
-            String dataPath = "./data";
-            String indexPath = "./index";
-            TaskController controller = new TaskController(dataPath, indexPath);
-            // controller.createIndex();
+            TaskController controller = new TaskController();
 
-            // TrecTest test = new TrecTest();
-            // test.run();
-            String file = Files.readString(Path.of("./topics/topics.1-50.txt"));
-            List<String> topics = new ArrayList<>(Arrays.asList(file.split("<top>")));
-            topics.remove(0);
+            // Create index
+            controller.createIndex(Config.NIL_INDEX_DIR);
+            controller.createIndex(Config.STD_INDEX_DIR, Stemming.STANDARD);
+            controller.createIndex(Config.KTZ_INDEX_DIR, Stemming.KROVETZ);
+            controller.createIndex(Config.PTR_INDEX_DIR, Stemming.PORTER);
+            controller.createIndex(Config.STD_STOP_INDEX_DIR, Stemming.STANDARD, Config.STOPLIST_FILE);
+            controller.createIndex(Config.KTZ_STOP_INDEX_DIR, Stemming.KROVETZ, Config.STOPLIST_FILE);
+            controller.createIndex(Config.PTR_STOP_INDEX_DIR, Stemming.PORTER, Config.STOPLIST_FILE);
 
-            ArrayList<String> topicList = new ArrayList<String>();
-            
-            File resultFile = new File(Config.RESULT_FILE);
-            boolean result = Files.deleteIfExists(resultFile.toPath());
-
-            for (String topic : topics) {
-                String part = topic.substring(topic.indexOf("<title>"), topic.indexOf("<desc>")).trim();
-                String value = normalize(part.substring("<title> Topic: ".length()));
-                topicList.add(value);
-            }
-
-            // controller.search(topicList.get(0));
-
-            for (int i = 0; i < topicList.size(); i++) {
-                controller.search(QueryParser.escape(topicList.get(i)), i + 1);
-            }
+            // Search
+            search(controller, Config.NIL_INDEX_DIR, Config.NIL_OUT_DIR);
+            search(controller, Config.STD_INDEX_DIR, Config.STD_OUT_DIR);
+            search(controller, Config.STD_STOP_INDEX_DIR, Config.STD_STOP_OUT_DIR);
+            search(controller, Config.KTZ_INDEX_DIR, Config.KTZ_OUT_DIR);
+            search(controller, Config.KTZ_STOP_INDEX_DIR, Config.KTZ_STOP_OUT_DIR);
+            search(controller, Config.PTR_INDEX_DIR, Config.PTR_OUT_DIR);
+            search(controller, Config.PTR_STOP_INDEX_DIR, Config.PTR_STOP_OUT_DIR);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println(e.toString());
         }
     }
 
-    private static String normalize(String text) {
-        return text.replace("\n", " ").replace("\r", " ").replaceAll("\s+", " ").trim();
+    private static void search(TaskController controller, String indexPath, String outRoot) {
+        controller.search(indexPath, Path.of(outRoot, "bm25", "results1.txt"), Config.TOPIC1_FILE, RetrievalModel.BM25);
+        controller.search(indexPath, Path.of(outRoot, "bm25", "results2.txt"), Config.TOPIC2_FILE, RetrievalModel.BM25);
+        controller.search(indexPath, Path.of(outRoot, "bm25", "results3.txt"), Config.TOPIC3_FILE, RetrievalModel.BM25);
+        controller.search(indexPath, Path.of(outRoot, "lm", "results1.txt"), Config.TOPIC1_FILE, RetrievalModel.LM);
+        controller.search(indexPath, Path.of(outRoot, "lm", "results2.txt"), Config.TOPIC2_FILE, RetrievalModel.LM);
+        controller.search(indexPath, Path.of(outRoot, "lm", "results3.txt"), Config.TOPIC3_FILE, RetrievalModel.LM);
+        controller.search(indexPath, Path.of(outRoot, "tfidf", "results1.txt"), Config.TOPIC1_FILE, RetrievalModel.TFIDF);
+        controller.search(indexPath, Path.of(outRoot, "tfidf", "results2.txt"), Config.TOPIC2_FILE, RetrievalModel.TFIDF);
+        controller.search(indexPath, Path.of(outRoot, "tfidf", "results3.txt"), Config.TOPIC3_FILE, RetrievalModel.TFIDF);
     }
 }

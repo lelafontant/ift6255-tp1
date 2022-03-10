@@ -1,13 +1,9 @@
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -22,19 +18,52 @@ import org.apache.lucene.store.FSDirectory;
 public class Indexer {
 
     private IndexWriter writer;
+    private String dirPath;
 
     public Indexer(String indexDirectoryPath) throws IOException {
-        // this directory will contain the indexes
+        this.setDirPath(indexDirectoryPath);
         Directory indexDirectory = FSDirectory.open(new File(indexDirectoryPath).toPath());
-        Analyzer standard = new StandardAnalyzer(new FileReader("./test/stoplist.txt"));
-        // Analyzer krovetz = new KrovetzAnalyzer();
-        // Analyzer porter = new PorterAnalyzer();
-        // Analyzer bm25 =new Anal
+
         IndexWriterConfig config = new IndexWriterConfig();
         config.setOpenMode(OpenMode.CREATE);
 
         // create the indexer
         writer = new IndexWriter(indexDirectory, config);
+    }  
+
+    public Indexer(String indexDirectoryPath, Stemming stemming) throws IOException {
+        this.setDirPath(indexDirectoryPath);
+        Directory indexDirectory = FSDirectory.open(new File(indexDirectoryPath).toPath());
+
+        Analyzer analyzer = createAnalyzer(stemming);
+
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(OpenMode.CREATE);
+
+        // create the indexer
+        writer = new IndexWriter(indexDirectory, config);
+    }
+
+    public Indexer(String indexDirectoryPath, Stemming stemming, String stopListPath) throws IOException {
+        this.setDirPath(indexDirectoryPath);
+        Directory indexDirectory = FSDirectory.open(new File(indexDirectoryPath).toPath());
+        
+        Analyzer analyzer = createAnalyzer(stemming, stopListPath);
+
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(OpenMode.CREATE);
+
+        // create the indexer
+        writer = new IndexWriter(indexDirectory, config);
+    }
+
+
+    public String getDirPath() {
+        return dirPath;
+    }
+
+    public void setDirPath(String dirPath) {
+        this.dirPath = dirPath;
     }
 
     public void close() throws CorruptIndexException, IOException {
@@ -44,9 +73,7 @@ public class Indexer {
     private Document getDocument(File file) throws IOException {
         Document document = new Document();
 
-        // index file contents
         Field contentField = new TextField(LuceneConstants.CONTENTS, new FileReader(file));
-        // index file name
         Field fileNameField = new TextField(LuceneConstants.FILE_NAME, file.getName(), Field.Store.YES);
         Field filePathField = new TextField(LuceneConstants.FILE_PATH, file.getCanonicalPath(), Field.Store.YES);
 
@@ -84,10 +111,9 @@ public class Indexer {
         List<String> docs = new ArrayList<>(Arrays.asList(collection.split("<DOC>")));
         docs.remove(0);
 
-        // ArrayList<String> docnos = new ArrayList<String>();
         for (String doc : docs) {
             String content = doc.split("</DOC>")[0];
-            
+
             Document document = getDocument(file, content);
             writer.addDocument(document);
         }
@@ -119,7 +145,34 @@ public class Indexer {
         return writer.numRamDocs();
     }
 
-    
+    private Analyzer createAnalyzer(Stemming stemming) {
+        switch (stemming) {
+            case STANDARD:
+                return new StandardAnalyzer();
+            case KROVETZ:
+                return new KrovetzAnalyzer();
+            case PORTER:
+                return new PorterAnalyzer();
+            default:
+                return new StandardAnalyzer();
+        }
+    }
+
+    private Analyzer createAnalyzer(Stemming stemming, String stopListPath) throws IOException {
+        Reader stopListReader = new FileReader(stopListPath);
+
+        switch (stemming) {
+            case STANDARD:
+                return new StandardAnalyzer(stopListReader);
+            case KROVETZ:
+                return new KrovetzAnalyzer(stopListReader);
+            case PORTER:
+                return new PorterAnalyzer(stopListReader);
+            default:
+                return new StandardAnalyzer(stopListReader);
+        }
+    }
+
     private String normalize(String text) {
         return text.replace("\n", " ").replace("\r", " ").replaceAll("\s+", " ").trim();
     }
