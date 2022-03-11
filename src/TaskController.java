@@ -75,7 +75,7 @@ public class TaskController {
         }
     }
 
-    public void search(String indexPath, Path outPath, List<String> topics, RetrievalModel model) throws IOException, ParseException {
+    public void search(String indexPath, Path outPath, List<String> topics, RetrievalModel model, int start) throws IOException, ParseException {
         ArrayList<String> topicTitles = new ArrayList<String>();
         for (String topic : topics) {
             String part = topic.substring(topic.indexOf("<title>"), topic.indexOf("<desc>")).trim();
@@ -86,13 +86,13 @@ public class TaskController {
         boolean result = Files.deleteIfExists(outPath);
 
         for (int i = 0; i < topicTitles.size(); i++) {
-            search(indexPath, outPath, QueryParser.escape(topicTitles.get(i)), i + 1, model);
+            search(indexPath, outPath, QueryParser.escape(topicTitles.get(i)), start + i , model);
         }
     }
 
-    public void search(String indexPath, Path outPath, String topicsPath, RetrievalModel model) {
+    public void search(String indexPath, Path outPath, String topicsPath, RetrievalModel model, int start) {
         try {
-            search(indexPath, outPath, getTopics(topicsPath), model);
+            search(indexPath, outPath, getTopics(topicsPath), model, start);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println(e.toString());
