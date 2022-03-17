@@ -19,8 +19,8 @@ public class App {
 
             // Search
             search(controller, Config.NIL_INDEX_DIR, Config.NIL_OUT_DIR);
-            // search(controller, Config.STD_INDEX_DIR, Config.STD_OUT_DIR);
-            // search(controller, Config.STD_STOP_INDEX_DIR, Config.STD_STOP_OUT_DIR);
+            search(controller, Config.STD_INDEX_DIR, Config.STD_OUT_DIR);
+            search(controller, Config.STD_STOP_INDEX_DIR, Config.STD_STOP_OUT_DIR);
             search(controller, Config.KTZ_INDEX_DIR, Config.KTZ_OUT_DIR);
             search(controller, Config.KTZ_STOP_INDEX_DIR, Config.KTZ_STOP_OUT_DIR);
             search(controller, Config.PTR_INDEX_DIR, Config.PTR_OUT_DIR);
