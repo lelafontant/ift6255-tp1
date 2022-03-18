@@ -28,8 +28,8 @@ public class KrovetzAnalyzer extends StopwordAnalyzerBase {
         final Tokenizer source = new StandardTokenizer();
         TokenStream result = new LowerCaseFilter(source);
         result = new StopFilter(result, stopwords);
+        result = new KStemFilter(result);
 
-        return new TokenStreamComponents(source, new KStemFilter(result));
+        return new TokenStreamComponents(source, result);
     }
-
 }

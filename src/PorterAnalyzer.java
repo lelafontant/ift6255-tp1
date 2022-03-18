@@ -25,11 +25,11 @@ public class PorterAnalyzer extends StopwordAnalyzerBase {
 
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
-        final Tokenizer src = new StandardTokenizer();
-        TokenStream result = new LowerCaseFilter(src);
+        final Tokenizer source = new StandardTokenizer();
+        TokenStream result = new LowerCaseFilter(source);
         result = new StopFilter(result, stopwords);
+        result = new PorterStemFilter(result);
 
-        return new TokenStreamComponents(src, new PorterStemFilter(result));
+        return new TokenStreamComponents(source, result);
     }
-
 }
