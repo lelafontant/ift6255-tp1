@@ -1,5 +1,4 @@
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -83,7 +82,7 @@ public class TaskController {
             topicTitles.add(value);
         }
 
-        boolean result = Files.deleteIfExists(outPath);
+        Files.deleteIfExists(outPath);
 
         for (int i = 0; i < topicTitles.size(); i++) {
             search(indexPath, outPath, QueryParser.escape(topicTitles.get(i)), start + i , model);
